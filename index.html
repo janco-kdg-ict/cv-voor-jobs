@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="description" content="Interactieve 3D-portfolio in een cozy dev workshop. Ontdek mijn projecten, skills en ervaring." />
+    <title>Jouw Naam — 3D Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- 3D canvas -->
+    <canvas id="scene"></canvas>
+
+    <!-- Loading / intro overlay -->
+    <div id="loader" class="loader">
+      <div class="loader__inner">
+        <div class="loader__name" data-split>De Werkplaats</div>
+        <div class="loader__bar"><span id="loader-fill"></span></div>
+        <div class="loader__pct"><span id="loader-pct">0</span>%</div>
+        <button id="enter-btn" class="enter-btn" disabled>Stap binnen</button>
+      </div>
+    </div>
+
+    <!-- HUD / interface -->
+    <header class="hud hud--top" aria-hidden="true">
+      <div class="hud__brand">
+        <span class="hud__dot"></span>
+        <span id="hud-name">Jouw Naam</span>
+      </div>
+      <nav class="hud__nav" id="hud-nav"></nav>
+    </header>
+
+    <div class="hud hud--hint" aria-hidden="true">
+      <span class="hud__hintdot"></span>
+      Sleep om rond te kijken · klik op een voorwerp
+    </div>
+
+    <!-- Floating tooltip for hovered objects -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- Detail panel -->
+    <div id="panel" class="panel">
+      <button id="panel-close" class="panel__close" aria-label="Sluiten">&times;</button>
+      <div id="panel-content" class="panel__content"></div>
+    </div>
+    <div id="panel-scrim" class="panel-scrim"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

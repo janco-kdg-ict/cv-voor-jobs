@@ -1,0 +1,19 @@
+{
+  "name": "cv-3d-workshop",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Een interactieve 3D-portfolio/CV site in de stijl van een cozy dev workshop.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "animejs": "^4.0.0",
+    "three": "^0.171.0"
+  }
+}
