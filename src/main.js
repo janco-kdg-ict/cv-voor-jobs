@@ -16,7 +16,7 @@ const canvas = document.getElementById('scene');
 const { renderer, scene, camera, controls, lamp } = createWorld(canvas);
 
 // Werkplaats opbouwen
-const { group, interactives } = buildShop();
+const { group, interactives, occluders } = buildShop();
 scene.add(group);
 
 // Zwevende stofdeeltjes voor sfeer
@@ -39,6 +39,7 @@ const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
   controls.update();
+  fadeOccluders();
   interaction.update(dt);
   // lampje flikkert subtiel
   lamp.intensity = 52 + Math.sin(performance.now() * 0.004) * 3;
@@ -46,6 +47,18 @@ function tick() {
   requestAnimationFrame(tick);
 }
 tick();
+
+// Laat muren/plafond doorzichtig worden zodra de camera er áchter draait,
+// zodat je altijd zicht houdt op de kamer (i.p.v. tegen een muur te kijken).
+function fadeOccluders() {
+  const p = camera.position;
+  for (const o of occluders) {
+    const target = o.userData.isBlocking(p) ? 0.12 : 1;
+    o.material.opacity += (target - o.material.opacity) * 0.15;
+    o.material.transparent = o.material.opacity < 0.985;
+    o.material.depthWrite = !o.material.transparent;
+  }
+}
 
 // ---------------------------------------------------------------------- Loader
 const loader = document.getElementById('loader');

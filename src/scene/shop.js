@@ -15,7 +15,8 @@ export function buildShop() {
 
   const wallTex = wallTexture({ base: '#2a2018' });
   wallTex.repeat.set(3, 2);
-  const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 1 });
+  // Elke muur krijgt een eigen materiaal-instantie zodat ze los kunnen vervagen.
+  const makeWallMat = () => new THREE.MeshStandardMaterial({ map: wallTex, roughness: 1 });
 
   const shelfTex = woodTexture({ base: '#7a4e28', hue: 26, plank: 6 });
   const shelfMat = new THREE.MeshStandardMaterial({ map: shelfTex, roughness: 0.7 });
@@ -38,22 +39,31 @@ export function buildShop() {
   ceiling.position.y = H;
   group.add(ceiling);
 
-  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(W, H), wallMat);
+  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(W, H), makeWallMat());
   backWall.position.set(0, H / 2, -D / 2);
   backWall.receiveShadow = true;
   group.add(backWall);
 
-  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(D, H), wallMat);
+  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(D, H), makeWallMat());
   leftWall.rotation.y = Math.PI / 2;
   leftWall.position.set(-W / 2, H / 2, 0);
   leftWall.receiveShadow = true;
   group.add(leftWall);
 
-  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(D, H), wallMat);
+  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(D, H), makeWallMat());
   rightWall.rotation.y = -Math.PI / 2;
   rightWall.position.set(W / 2, H / 2, 0);
   rightWall.receiveShadow = true;
   group.add(rightWall);
+
+  // Muren/plafond die vervagen zodra de camera er áchter draait. De test
+  // bepaalt per vlak of de camera aan de "buitenkant" zit (met een marge).
+  const occluders = [
+    Object.assign(backWall, { userData: { isBlocking: (c) => c.z < -D / 2 + 0.5 } }),
+    Object.assign(leftWall, { userData: { isBlocking: (c) => c.x < -W / 2 + 0.5 } }),
+    Object.assign(rightWall, { userData: { isBlocking: (c) => c.x > W / 2 - 0.5 } }),
+    Object.assign(ceiling, { userData: { isBlocking: (c) => c.y > H - 0.5 } }),
+  ];
 
   // Vloerkleed
   const rug = new THREE.Mesh(
@@ -221,7 +231,7 @@ export function buildShop() {
   stool.position.set(2.5, 0, 2.5);
   group.add(stool);
 
-  return { group, interactives };
+  return { group, interactives, occluders };
 }
 
 /* ------------------------------------------------------------------ helpers */
