@@ -56,14 +56,25 @@ export function buildShop() {
   rightWall.receiveShadow = true;
   group.add(rightWall);
 
-  // Muren/plafond die vervagen zodra de camera er áchter draait. De test
-  // bepaalt per vlak of de camera aan de "buitenkant" zit (met een marge).
-  const occluders = [
-    Object.assign(backWall, { userData: { isBlocking: (c) => c.z < -D / 2 + 0.5 } }),
-    Object.assign(leftWall, { userData: { isBlocking: (c) => c.x < -W / 2 + 0.5 } }),
-    Object.assign(rightWall, { userData: { isBlocking: (c) => c.x > W / 2 - 0.5 } }),
-    Object.assign(ceiling, { userData: { isBlocking: (c) => c.y > H - 0.5 } }),
-  ];
+  // --- Vervagende objecten ----------------------------------------------
+  // Muren, plafond én de prikborden worden doorzichtig zodra de camera er
+  // áchter draait, zodat je nooit "vast" achter een vlak komt te zitten.
+  const occluders = [];
+  function addOccluder(object, test) {
+    const items = [];
+    object.traverse((o) => {
+      if (!o.isMesh) return;
+      for (const m of (Array.isArray(o.material) ? o.material : [o.material])) {
+        m.transparent = true;
+        items.push({ mat: m, base: m.opacity });
+      }
+    });
+    occluders.push({ test, items });
+  }
+  addOccluder(backWall, (c) => c.z < -D / 2 + 0.5);
+  addOccluder(leftWall, (c) => c.x < -W / 2 + 0.5);
+  addOccluder(rightWall, (c) => c.x > W / 2 - 0.5);
+  addOccluder(ceiling, (c) => c.y > H - 0.5);
 
   // Vloerkleed
   const rug = new THREE.Mesh(
@@ -211,6 +222,12 @@ export function buildShop() {
   };
   group.add(board);
   interactives.push(board);
+
+  // De prikborden hangen op de linkermuur en kijken naar +x. Draai je er
+  // áchter (camera links van het bord), dan vervagen ze zodat je niet
+  // vastloopt achter het skills- of ervaringsbord.
+  addOccluder(peg, (c) => c.x < peg.position.x + 0.6);
+  addOccluder(board, (c) => c.x < board.position.x + 0.6);
 
   // --- Decor: planten in de hoeken --------------------------------------
   const plant = makePlant();

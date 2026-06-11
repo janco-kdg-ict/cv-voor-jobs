@@ -48,15 +48,17 @@ function tick() {
 }
 tick();
 
-// Laat muren/plafond doorzichtig worden zodra de camera er áchter draait,
-// zodat je altijd zicht houdt op de kamer (i.p.v. tegen een muur te kijken).
+// Laat muren, plafond en prikborden doorzichtig worden zodra de camera er
+// áchter draait, zodat je nooit vast komt te zitten achter een vlak.
 function fadeOccluders() {
   const p = camera.position;
-  for (const o of occluders) {
-    const target = o.userData.isBlocking(p) ? 0.12 : 1;
-    o.material.opacity += (target - o.material.opacity) * 0.15;
-    o.material.transparent = o.material.opacity < 0.985;
-    o.material.depthWrite = !o.material.transparent;
+  for (const occ of occluders) {
+    const blocking = occ.test(p);
+    for (const it of occ.items) {
+      const target = blocking ? it.base * 0.12 : it.base;
+      it.mat.opacity += (target - it.mat.opacity) * 0.15;
+      it.mat.depthWrite = it.mat.opacity > it.base * 0.95;
+    }
   }
 }
 
