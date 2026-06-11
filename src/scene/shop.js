@@ -57,24 +57,33 @@ export function buildShop() {
   group.add(rightWall);
 
   // --- Vervagende objecten ----------------------------------------------
-  // Muren, plafond én de prikborden worden doorzichtig zodra de camera er
-  // áchter draait, zodat je nooit "vast" achter een vlak komt te zitten.
+  // Alles wat tússen de camera en het midden van de kamer staat, wordt
+  // doorzichtig (via een raycast in main.js). Zo zie je de kamer ook als je
+  // áchter een prikbord of de kast draait — maar enkel dán.
   const occluders = [];
-  function addOccluder(object, test) {
+  function addOccluder(object, cloneMats = false) {
+    const raycastMeshes = [];
     const items = [];
     object.traverse((o) => {
       if (!o.isMesh) return;
+      raycastMeshes.push(o);
+      // Gedeelde materialen klonen, anders vervaagt ook ander meubilair mee.
+      if (cloneMats) {
+        o.material = Array.isArray(o.material)
+          ? o.material.map((m) => m.clone())
+          : o.material.clone();
+      }
       for (const m of (Array.isArray(o.material) ? o.material : [o.material])) {
         m.transparent = true;
         items.push({ mat: m, base: m.opacity });
       }
     });
-    occluders.push({ test, items });
+    occluders.push({ raycastMeshes, items });
   }
-  addOccluder(backWall, (c) => c.z < -D / 2 + 0.5);
-  addOccluder(leftWall, (c) => c.x < -W / 2 + 0.5);
-  addOccluder(rightWall, (c) => c.x > W / 2 - 0.5);
-  addOccluder(ceiling, (c) => c.y > H - 0.5);
+  addOccluder(backWall);
+  addOccluder(leftWall);
+  addOccluder(rightWall);
+  addOccluder(ceiling);
 
   // Vloerkleed
   const rug = new THREE.Mesh(
@@ -133,6 +142,7 @@ export function buildShop() {
   const shelf = buildBookshelf(shelfMat, darkWood);
   shelf.position.set(0, 0, -7.1);
   group.add(shelf);
+  addOccluder(shelf, true); // kast vervaagt als je erachter draait
 
   const shelfYs = [1.5, 3.0, 4.5]; // hoogtes van de planken
   content.projects.forEach((proj, i) => {
@@ -151,6 +161,7 @@ export function buildShop() {
     };
     group.add(box);
     interactives.push(box);
+    addOccluder(box); // projectdoos vervaagt als je erachter draait
   });
 
   // =======================================================================
@@ -223,11 +234,10 @@ export function buildShop() {
   group.add(board);
   interactives.push(board);
 
-  // De prikborden hangen op de linkermuur en kijken naar +x. Draai je er
-  // áchter (camera links van het bord), dan vervagen ze zodat je niet
+  // De prikborden meenemen: draai je erachter, dan vervagen ze zodat je niet
   // vastloopt achter het skills- of ervaringsbord.
-  addOccluder(peg, (c) => c.x < peg.position.x + 0.6);
-  addOccluder(board, (c) => c.x < board.position.x + 0.6);
+  addOccluder(peg);
+  addOccluder(board);
 
   // --- Decor: planten in de hoeken --------------------------------------
   const plant = makePlant();

@@ -19,6 +19,10 @@ const { renderer, scene, camera, controls, lamp } = createWorld(canvas);
 const { group, interactives, occluders } = buildShop();
 scene.add(group);
 
+// Hergebruikte helpers voor de occluder-raycast (camera -> midden van de kamer).
+const occluderRay = new THREE.Raycaster();
+const camToTarget = new THREE.Vector3();
+
 // Zwevende stofdeeltjes voor sfeer
 scene.add(makeDust());
 
@@ -48,15 +52,20 @@ function tick() {
 }
 tick();
 
-// Laat muren, plafond en prikborden doorzichtig worden zodra de camera er
-// áchter draait, zodat je nooit vast komt te zitten achter een vlak.
+// Laat objecten die tússen de camera en het midden van de kamer staan
+// doorzichtig worden (prikborden, kast, dozen, muren). Zo zie je de kamer
+// ook als je erachter draait — maar enkel dan, want we raycasten elke frame
+// van de camera naar het kijkpunt en vervagen alleen wat de straal raakt.
 function fadeOccluders() {
-  const p = camera.position;
+  camToTarget.subVectors(controls.target, camera.position);
+  const dist = camToTarget.length();
+  occluderRay.far = dist;
+  occluderRay.set(camera.position, camToTarget.normalize());
   for (const occ of occluders) {
-    const blocking = occ.test(p);
+    const blocking = occluderRay.intersectObjects(occ.raycastMeshes, false).length > 0;
     for (const it of occ.items) {
-      const target = blocking ? it.base * 0.12 : it.base;
-      it.mat.opacity += (target - it.mat.opacity) * 0.15;
+      const target = blocking ? it.base * 0.1 : it.base;
+      it.mat.opacity += (target - it.mat.opacity) * 0.18;
       it.mat.depthWrite = it.mat.opacity > it.base * 0.95;
     }
   }
